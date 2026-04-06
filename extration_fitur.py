@@ -78,7 +78,7 @@ else:
             shape_data.append([file, area, perimeter, label])
 
     # Membuat DataFrame untuk masing-masing kategori fitur
-    df_color = pd.DataFrame(color_data, columns=["file", "mean_r ", "mean_g", "mean_b", "std_r", "std_g", "std_b", "label"])
+    df_color = pd.DataFrame(color_data, columns=["file", "mean_r", "mean_g", "mean_b", "std_r", "std_g", "std_b", "label"])
     df_texture = pd.DataFrame(texture_data, columns=["file", "contrast", "energy", "homogeneity", "correlation", "label"])
     df_shape = pd.DataFrame(shape_data, columns=["file", "area", "perimeter", "label"])
 
