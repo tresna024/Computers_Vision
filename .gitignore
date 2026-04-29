@@ -1,1 +1,3 @@
-fitur_daun_baru.xlsx
+*.pkl
+*.xlsx
+/datasets
