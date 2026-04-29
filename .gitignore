@@ -1,3 +1,10 @@
-*.pkl
+# dataset
+datasets/
 *.xlsx
-/datasets
+
+# model
+*.pkl
+
+# python cache
+__pycache__/
+*.pyc
