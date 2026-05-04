@@ -95,6 +95,7 @@ hasil = {
     "label_encoder": le,
     "scaler"       : scaler,
     "feature_cols" : feature_cols,
+    "X_test"       : X_test,
     "y_test"       : y_test,
     "y_pred"       : y_pred,
     "cv_score"     : cv_score,

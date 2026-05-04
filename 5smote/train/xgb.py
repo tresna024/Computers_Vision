@@ -70,7 +70,6 @@ xgb_model = XGBClassifier(
     n_estimators=100,
     learning_rate=0.1,
     max_depth=6,
-    use_label_encoder=False,
     eval_metric='mlogloss',
     random_state=42
 )
@@ -98,6 +97,7 @@ hasil = {
     "label_encoder": le,
     "scaler"       : scaler,
     "feature_cols" : feature_cols,
+    "X_test"       : X_test,
     "y_test"       : y_test,
     "y_pred"       : y_pred,
     "cv_score"     : cv_score,

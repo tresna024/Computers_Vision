@@ -6,6 +6,8 @@ import joblib
 from pathlib import Path
 
 from sklearn.metrics import confusion_matrix
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 # ── Load satu file hasil training ─────────────────────────────────────────────
 model_path = Path(__file__).parent.parent / "3train model" / "hasil_training_xgboost.pkl"
@@ -19,9 +21,12 @@ y_pred       = hasil["y_pred"]
 cv_score     = hasil["cv_score"]
 acc          = hasil["acc"]
 f1           = hasil["f1"]
+X_test       = hasil["X_test"]   # ← pastikan disimpan saat training
 class_names  = le.classes_
 
 base_dir = Path(__file__).parent / "Xgboost"
+base_dir.mkdir(parents=True, exist_ok=True)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # 1. Confusion Matrix
 # ══════════════════════════════════════════════════════════════════════════════
@@ -44,7 +49,6 @@ sns.heatmap(
     annot_kws={'size': 12, 'weight': 'bold'},
 )
 
-# Tandai diagonal (prediksi benar) dengan border oranye tua
 for i in range(len(class_names)):
     ax.add_patch(plt.Rectangle((i, i), 1, 1,
                                 fill=False, edgecolor='#e65100',
@@ -64,7 +68,7 @@ ax.tick_params(axis='y', rotation=0,  labelsize=10)
 plt.tight_layout()
 plt.savefig(base_dir / "confusion_matrix_xgb.png", dpi=150, bbox_inches='tight')
 plt.close()
-print("Confusion matrix disimpan ke: confusion_matrix_xgb.png")
+print("Confusion matrix disimpan ke: Xgboost/confusion_matrix_xgb.png")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 2. Feature Importance (Top 20)
@@ -73,9 +77,9 @@ color_cols = ['mean_r','mean_g','mean_b','std_r','std_g','std_b','skew_r','skew_
 shape_cols = ['area', 'perimeter']
 
 def feat_color(name):
-    if name in color_cols:   return '#1565c0'   # biru — warna
-    elif name in shape_cols: return '#e65100'   # oranye — bentuk
-    else:                    return '#2e7d32'   # hijau — tekstur
+    if name in color_cols:   return '#1565c0'
+    elif name in shape_cols: return '#e65100'
+    else:                    return '#2e7d32'
 
 importances = xgb_model.feature_importances_
 indices     = np.argsort(importances)[::-1][:20]
@@ -102,4 +106,64 @@ ax.legend(handles=legend_patches, fontsize=10, loc='lower right')
 plt.tight_layout()
 plt.savefig(base_dir / "feature_importance_xgb.png", dpi=150, bbox_inches='tight')
 plt.close()
-print("Feature importance disimpan ke: feature_importance_xgb.png")
+print("Feature importance disimpan ke: Xgboost/feature_importance_xgb.png")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 3. PCA 3D — Penyebaran Data Ekstraksi Uji
+# ══════════════════════════════════════════════════════════════════════════════
+
+pca   = PCA(n_components=3, random_state=42)
+X_pca = pca.fit_transform(X_test)
+
+palette = [
+    '#e53935', '#43a047', '#1e88e5', '#fb8c00',
+    '#8e24aa', '#00acc1', '#f4511e', '#6d4c41',
+]
+
+fig  = plt.figure(figsize=(12, 8))
+ax3d = fig.add_subplot(111, projection='3d')
+
+for idx, cls in enumerate(class_names):
+    mask = (y_test == idx)
+    col  = palette[idx % len(palette)]
+    ax3d.scatter(
+        X_pca[mask, 0], X_pca[mask, 1], X_pca[mask, 2],
+        c=col, label=cls,
+        s=40, alpha=0.75,
+        edgecolors='white', linewidths=0.4,
+        depthshade=True,
+    )
+
+# Tandai titik yang salah diklasifikasi
+wrong_mask = (y_test != y_pred)
+if wrong_mask.sum() > 0:
+    ax3d.scatter(
+        X_pca[wrong_mask, 0], X_pca[wrong_mask, 1], X_pca[wrong_mask, 2],
+        c='black', marker='x', s=60, linewidths=1.2,
+        label='Salah klasifikasi', zorder=5,
+    )
+
+var = pca.explained_variance_ratio_ * 100
+ax3d.set_xlabel(f'PC 1 ({var[0]:.1f}%)', fontsize=10, labelpad=8)
+ax3d.set_ylabel(f'PC 2 ({var[1]:.1f}%)', fontsize=10, labelpad=8)
+ax3d.set_zlabel(f'PC 3 ({var[2]:.1f}%)', fontsize=10, labelpad=8)
+
+ax3d.set_title(
+    'Penyebaran Data Ekstraksi Uji — PCA 3D\n'
+    f'XGBoost  |  Total variansi: {sum(var):.1f}%',
+    fontsize=13, fontweight='bold', pad=16
+)
+
+ax3d.legend(
+    fontsize=9, loc='upper left',
+    bbox_to_anchor=(0.0, 1.0),
+    framealpha=0.7, markerscale=1.4,
+)
+
+ax3d.view_init(elev=20, azim=-60)
+ax3d.grid(True, linestyle='--', alpha=0.4)
+
+plt.tight_layout()
+plt.savefig(base_dir / "pca_3d_scatter_xgb.png", dpi=150, bbox_inches='tight')
+plt.close()
+print("PCA 3D scatter disimpan ke: Xgboost/pca_3d_scatter_xgb.png")

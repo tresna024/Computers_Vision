@@ -9,7 +9,7 @@ ROOT_DIR = BASE_DIR.parent                   # 5smote
 
 # ── Path ──────────────────────────────────────────────
 HASIL_DIR = ROOT_DIR / "train"
-OUT_DIR   = BASE_DIR / "hasil"
+OUT_DIR   = BASE_DIR / "hasil Perbandingan"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +34,7 @@ for bar, val in zip(bars, acc_vals):
             ha='center', va='bottom', fontsize=11, fontweight='bold')
 
 ax.set_ylabel('Akurasi', fontsize=12, fontweight='bold')
-ax.set_title('Perbandingan Akurasi Model\nRandom Forest vs SVM vs XGBoost',
+ax.set_title('Perbandingan Akurasi Model\nRandom Forest vs SVM vs XGBoost (WITH SMOTE)',
              fontsize=14, fontweight='bold', pad=16)
 ax.set_ylim(0, 1.12)
 ax.yaxis.grid(True, linestyle='--', alpha=0.5)
